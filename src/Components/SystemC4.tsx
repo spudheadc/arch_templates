@@ -1,20 +1,30 @@
 import {
   AppModelContextType,
+  IAppModel,
   IArchitectureModel,
   IInteraction,
   IRelationship,
   IUser,
 } from "../@types/context";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AppModelContext } from "../context/appModelContext";
-import { Box, CardContent, Divider } from "@mui/material";
+import {
+  Box,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  Grid2,
+  IconButton,
+} from "@mui/material";
 import encoder from "plantuml-encoder";
 import { RecordsEntity } from "../@types/Apps";
 import { useRecordsEntity } from "../utils/useRecordsEntity";
-
-function outputText(text: string) {
-  return text.split("\n").map((str) => <div>{str}</div>);
-}
+import { Done, OpenInNew } from "@mui/icons-material";
+import { CodeDisplay } from "./CodeDisplay";
 
 const c4SHeadertring = `
 @startuml
@@ -32,6 +42,27 @@ function SystemC4({ interactions }: SystemC4Props) {
   const [model]: AppModelContextType = useContext(AppModelContext);
   const [getRecordsEntity] = useRecordsEntity();
 
+  var plantUMLString = getSystemDiagram(interactions, model, getRecordsEntity);
+
+  return (
+    <CodeDisplay codeString={plantUMLString}>
+      <img
+        src={
+          "http://www.plantuml.com/plantuml/img/" +
+          encoder.encode(plantUMLString)
+        }
+        alt="Plantuml diagram"
+      />
+    </CodeDisplay>
+  );
+}
+export default SystemC4;
+
+function getSystemDiagram(
+  interactions: IInteraction[] | undefined,
+  model: IAppModel,
+  getRecordsEntity: (value: string) => RecordsEntity,
+) {
   var users: Array<IUser> = [];
   var components: Array<string> = [];
   var relationships: Array<IRelationship> = [];
@@ -95,22 +126,5 @@ function SystemC4({ interactions }: SystemC4Props) {
     return into;
   }, "");
   c4String += c4SFootertring;
-  const plantumlURL =
-    "http://www.plantuml.com/plantuml/img/" + encoder.encode(c4String);
-
-  console.log("PlantUML URL =" + plantumlURL);
-  return (
-    <>
-      <CardContent>
-        <img src={plantumlURL} alt="Plantuml diagram" />
-        <Divider />
-        <Box>
-          <h2>C4 code</h2>
-        </Box>
-        <Box>{outputText(c4String)}</Box>
-      </CardContent>
-      )
-    </>
-  );
+  return c4String;
 }
-export default SystemC4;

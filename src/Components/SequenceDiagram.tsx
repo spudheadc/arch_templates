@@ -11,6 +11,7 @@ import encoder from "plantuml-encoder";
 import { RecordsEntity } from "../@types/Apps";
 import { useRecordsEntity } from "../utils/useRecordsEntity";
 import { CurrentInteractionContext } from "../context/currentIneractionContext";
+import { CodeDisplay } from "./CodeDisplay";
 
 function outputText(text: string) {
   return text.split("\n").map((str) => <div>{str}</div>);
@@ -33,6 +34,25 @@ function SequenceDiagram({ interaction }: SequenceDiagramProps) {
 
   if (!interaction) interaction = currentInteraction;
 
+  var sequenceString = getSequenceDiagram(interaction, getRecordsEntity);
+  return (
+    <CodeDisplay codeString={sequenceString}>
+      <img
+        src={
+          "http://www.plantuml.com/plantuml/img/" +
+          encoder.encode(sequenceString)
+        }
+        alt="Plantuml diagram"
+      />
+    </CodeDisplay>
+  );
+}
+export default SequenceDiagram;
+
+function getSequenceDiagram(
+  interaction: IInteraction,
+  getRecordsEntity: (value: string) => RecordsEntity,
+) {
   var sequenceString = PlantUMLStart;
 
   sequenceString = `actor "${interaction.user.name}" as ${interaction.user.person_id.replaceAll("-", "")} 
@@ -67,22 +87,5 @@ function SequenceDiagram({ interaction }: SequenceDiagramProps) {
     "",
   );
   sequenceString += PlantUMLEnd;
-  const plantumlURL =
-    "http://www.plantuml.com/plantuml/img/" + encoder.encode(sequenceString);
-
-  console.log("PlantUML URL =" + plantumlURL);
-  return (
-    <>
-      <CardContent>
-        <img src={plantumlURL} alt="Plantuml diagram" />
-        <Divider />
-        <Box>
-          <h2>PlantUML code</h2>
-        </Box>
-        <Box>{outputText(sequenceString)}</Box>
-      </CardContent>
-      )
-    </>
-  );
+  return sequenceString;
 }
-export default SequenceDiagram;

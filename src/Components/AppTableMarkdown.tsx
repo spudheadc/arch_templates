@@ -2,6 +2,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   AppModelContextType,
+  IAppModel,
   IArchitectureModel,
   IInteraction,
   IRelationship,
@@ -11,6 +12,7 @@ import { useContext } from "react";
 import { AppModelContext } from "../context/appModelContext";
 import { Box, CardContent, Divider } from "@mui/material";
 import { useRecordsEntity } from "../utils/useRecordsEntity";
+import { CodeDisplay } from "./CodeDisplay";
 
 function outputMarkDown(text: string) {
   return text.split("\n").map((str) => <div>{str}</div>);
@@ -24,22 +26,12 @@ function AppTableMarkdown({ interactions }: AppTableMarkdownProps) {
   const [model]: AppModelContextType = useContext(AppModelContext);
   const [getRecordsEntity] = useRecordsEntity();
 
-  var users: Array<IUser> = [];
-  var components: Array<string> = [];
-  var relationships: Array<IRelationship> = [];
-  if (!interactions) {
-    let newInteractions: Array<IInteraction> = new Array<IInteraction>();
-    model.architectures.forEach((item: IArchitectureModel) => {
-      newInteractions.push(...item.interactions);
-    });
-    interactions = newInteractions;
-  }
-
-  interactions.forEach((item) => {
-    users.push(item.user);
-    components.push(...item.components);
-    relationships.push(...item.relationships);
-  });
+  var components: Array<string> | undefined;
+  var relationships: Array<IRelationship> | undefined;
+  ({ components, relationships, interactions } = getComponents(
+    interactions,
+    model,
+  ));
 
   var appTableMarkdown: string =
     "| App Id | App Name | Description |\n| ----- | ----- | ----- |\n";
@@ -81,27 +73,46 @@ function AppTableMarkdown({ interactions }: AppTableMarkdownProps) {
         <Box>
           <h2>Applications</h2>
         </Box>
-        <Markdown remarkPlugins={[remarkGfm]}>{appTableMarkdown}</Markdown>
-        <Divider />
-        <Box>
-          <h2>Markdown code</h2>
-        </Box>
-        <Box>{outputMarkDown(appTableMarkdown)}</Box>
+
+        <CodeDisplay codeString={appTableMarkdown}>
+          <Markdown remarkPlugins={[remarkGfm]}>{appTableMarkdown}</Markdown>
+        </CodeDisplay>
       </CardContent>
       <Divider />
       <CardContent>
         <Box>
           <h2>Relationships</h2>
         </Box>
-        <Markdown remarkPlugins={[remarkGfm]}>{relTableMarkdown}</Markdown>
-        <Divider />
-        <Box>
-          <h2>Markdown code</h2>
-        </Box>
-        <Box>{outputMarkDown(relTableMarkdown)}</Box>
+
+        <CodeDisplay codeString={relTableMarkdown}>
+          <Markdown remarkPlugins={[remarkGfm]}>{relTableMarkdown}</Markdown>
+        </CodeDisplay>
       </CardContent>
       )
     </>
   );
 }
 export default AppTableMarkdown;
+
+function getComponents(
+  interactions: IInteraction[] | undefined,
+  model: IAppModel,
+) {
+  var users: Array<IUser> = [];
+  var components: Array<string> = [];
+  var relationships: Array<IRelationship> = [];
+  if (!interactions) {
+    let newInteractions: Array<IInteraction> = new Array<IInteraction>();
+    model.architectures.forEach((item: IArchitectureModel) => {
+      newInteractions.push(...item.interactions);
+    });
+    interactions = newInteractions;
+  }
+
+  interactions.forEach((item) => {
+    users.push(item.user);
+    components.push(...item.components);
+    relationships.push(...item.relationships);
+  });
+  return { components, relationships, interactions };
+}

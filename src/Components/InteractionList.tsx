@@ -98,9 +98,6 @@ function InteractionList() {
       <Dialog open={overviewView != -1} onClose={() => setOverviewView(-1)}>
         <DialogTitle></DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            To add a new architecture we need some basic details
-          </DialogContentText>
           <Box>
             {overviewView !== -1 ? overViews[overviewView].component : ""}
           </Box>
